@@ -1,0 +1,24 @@
+variables:
+    Tag: v1
+    Replicas: 2
+stages:
+  - build
+  - deploy
+job1:
+    image: harbor.guesscy.com:666/cy/docker
+    stage: build
+    script:
+        - docker build -t harbor.guesscy.com:666/cy/nginx:$Tag .
+        - docker login -u admin -p 19861119Kk harbor.guesscy.com:666
+        - docker push harbor.guesscy.com:666/cy/nginx:$Tag
+    tags:
+     - docker
+job2:
+    image: harbor.guesscy.com:666/cy/kubectl
+    stage: deploy
+    script:
+      - kubectl apply -f deployment.yaml
+      - kubectl set image deploy nginx nginx=harbor.guesscy.com:666/cy/nginx:$Tag
+      - kubectl scale deploy nginx --replicas=$Replicas -n web
+    tags:
+      - docker
